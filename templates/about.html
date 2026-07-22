@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}About — Irae{% endblock %}
+{% block content %}
+
+<div class="content-page">
+  <h1>About THRESHOLD</h1>
+  <p class="lead">We make clothing for the day you're actually having — not the one on a mood board.</p>
+
+  <p>THRESHOLD started as a small studio experiment: could a handful of well-made pieces replace a
+  closet full of things that don't quite fit right? Every garment we release is developed over several
+  fittings, cut in small batches, and tested for how it holds up after the twentieth wash, not just the first.</p>
+
+  <p>We work with mill partners who share fabric composition and origin on request, and we'd rather
+  ship a smaller collection on time than rush something we're not proud of. If a piece doesn't earn a
+  place in regular rotation, we don't make it again.</p>
+
+  <h2>What we stand for</h2>
+  <ul class="about-list">
+    <li><strong>Fewer, better pieces.</strong> We'd rather you buy one thing you wear fifty times.</li>
+    <li><strong>Honest pricing.</strong> Our markup is disclosed in our <a href="{{ url_for('policies') }}">policies page</a>.</li>
+    <li><strong>Easy to return.</strong> If it doesn't fit right, sending it back shouldn't be a fight.</li>
+  </ul>
+
+  <h2>Get in touch</h2>
+  <p>Questions about fit, fabric, or an order? Reach us at support@threshold-clothing.example or visit
+  our <a href="{{ url_for('contact') }}">contact page</a>.</p>
+</div>
+
+{% endblock %}

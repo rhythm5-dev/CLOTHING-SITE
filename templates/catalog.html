@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Shop All — Irae{% endblock %}
+{% block content %}
+
+<div class="catalog-layout">
+  <aside class="filters">
+    <h3>Category</h3>
+    <ul class="filter-list">
+      {% for c in categories %}
+      <li>
+        <a href="{{ url_for('catalog', category=c, sub=current_sub, sort=current_sort, q=q) }}"
+           class="{{ 'active' if c == current_category else '' }}">{{ c }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+    <h3>Type</h3>
+    <ul class="filter-list">
+      {% for s in subcats %}
+      <li>
+        <a href="{{ url_for('catalog', category=current_category, sub=s, sort=current_sort, q=q) }}"
+           class="{{ 'active' if s == current_sub else '' }}">{{ s }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </aside>
+
+  <div class="catalog-main">
+    <div class="catalog-toolbar">
+      <p>{{ products|length }} product{{ 's' if products|length != 1 else '' }}
+        {% if q %}for "{{ q }}"{% endif %}</p>
+      <form method="get" class="sort-form">
+        <input type="hidden" name="category" value="{{ current_category }}">
+        <input type="hidden" name="sub" value="{{ current_sub }}">
+        <input type="hidden" name="q" value="{{ q }}">
+        <select name="sort" onchange="this.form.submit()">
+          <option value="" {{ 'selected' if current_sort == '' }}>Sort: Featured</option>
+          <option value="price_low" {{ 'selected' if current_sort == 'price_low' }}>Price: Low to High</option>
+          <option value="price_high" {{ 'selected' if current_sort == 'price_high' }}>Price: High to Low</option>
+          <option value="rating" {{ 'selected' if current_sort == 'rating' }}>Customer Rating</option>
+        </select>
+      </form>
+    </div>
+
+    {% if products %}
+    <div class="product-grid">
+      {% for p in products %}
+      <a href="{{ url_for('product_detail', product_id=p.id) }}" class="product-card">
+        <div class="product-image">
+          <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+          {% if discount_pct(p) %}<span class="badge">{{ discount_pct(p) }}% OFF</span>{% endif %}
+        </div>
+        <div class="product-info">
+          <p class="product-cat">{{ p.category }} · {{ p.subcategory }}</p>
+          <p class="product-name">{{ p.name }}</p>
+          <p class="product-price">₹{{ p.price }}
+            {% if p.mrp > p.price %}<span class="mrp">₹{{ p.mrp }}</span>{% endif %}
+          </p>
+          <p class="product-rating">★ {{ p.rating }}</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>No products match those filters. Try clearing a filter or searching a different term.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

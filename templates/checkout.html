@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Checkout — THRESHOLD{% endblock %}
+{% block content %}
+
+<div class="checkout-page">
+  <h1>Checkout</h1>
+  <div class="checkout-layout">
+    <form method="post" class="checkout-form">
+      <h3>Shipping details</h3>
+      <label>Full name<input type="text" name="name" required></label>
+      <label>Email<input type="email" name="email" required></label>
+      <label>Phone<input type="tel" name="phone" required></label>
+      <label>Address<textarea name="address" rows="3" required></textarea></label>
+      <div class="form-row">
+        <label>City<input type="text" name="city" required></label>
+        <label>Pincode<input type="text" name="pincode" required></label>
+      </div>
+
+      <h3>Payment method</h3>
+      <p class="note">This is a demo store — no real payment is processed. In a production build, this step
+        would hand off to a gateway like Razorpay or Stripe.</p>
+      <label class="radio-row"><input type="radio" name="payment_method" value="COD" checked> Cash on Delivery</label>
+      <label class="radio-row"><input type="radio" name="payment_method" value="Card (demo)"> Credit / Debit Card</label>
+      <label class="radio-row"><input type="radio" name="payment_method" value="UPI (demo)"> UPI</label>
+
+      <button type="submit" class="btn btn-primary btn-block">Place Order — ₹{{ grand_total }}</button>
+    </form>
+
+    <div class="cart-summary">
+      <h3>Order Summary</h3>
+      {% for d in details %}
+      <div class="summary-line-item">
+        <span>{{ d.product.name }} ({{ d.size }}) × {{ d.qty }}</span>
+        <span>₹{{ d.line_total }}</span>
+      </div>
+      {% endfor %}
+      <div class="summary-row"><span>Subtotal</span><span>₹{{ total }}</span></div>
+      <div class="summary-row"><span>Shipping</span><span>{{ '₹' ~ shipping if shipping else 'FREE' }}</span></div>
+      <div class="summary-row summary-total"><span>Total</span><span>₹{{ grand_total }}</span></div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}IRAE — Clothing for the Main Characters{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero-text">
+    <p class="eyebrow">Ethnic and Western Collection</p>
+    <h1>Wear What<br>turns heads.</h1>
+    <p class="hero-sub">Baddies' shopping festival.</p>
+    <a href="{{ url_for('catalog') }}" class="btn btn-primary">Shop the collection</a>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <div class="hero-swatch swatch-1"></div>
+    <div class="hero-swatch swatch-2"></div>
+    <div class="hero-swatch swatch-3"></div>
+  </div>
+</section>
+
+<section class="category-strip">
+  <a href="{{ url_for('catalog') }}?category=Women" class="cat-card">
+    <img src="/static/images/red2.jpeg" alt="Women's clothing">
+    <span>Women</span>
+  </a>
+  <a href="{{ url_for('catalog') }}?category=Men" class="cat-card">
+    <img src="/static/images/MEN2.jpeg" alt="Men's clothing">
+    <span>Men</span>
+  </a>
+  
+  </a>
+</section>
+
+<section class="featured">
+  <div class="section-heading">
+    <h2>Newly added</h2>
+    <a href="{{ url_for('catalog') }}" class="see-all">See all products →</a>
+  </div>
+  <div class="product-grid">
+    {% for p in featured %}
+    <a href="{{ url_for('product_detail', product_id=p.id) }}" class="product-card">
+      <div class="product-image">
+        <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+        {% if discount_pct(p) %}<span class="badge">{{ discount_pct(p) }}% OFF</span>{% endif %}
+      </div>
+      <div class="product-info">
+        <p class="product-cat">{{ p.category }} · {{ p.subcategory }}</p>
+        <p class="product-name">{{ p.name }}</p>
+        <p class="product-price">₹{{ p.price }}
+          {% if p.mrp > p.price %}<span class="mrp">₹{{ p.mrp }}</span>{% endif %}
+        </p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="value-strip">
+  <div><strong>Free shipping</strong><span>On orders over ₹1,999</span></div>
+  <div><strong>7-day returns</strong><span>No questions asked</span></div>
+  <div><strong>Secure checkout</strong><span>Your details stay yours</span></div>
+  <div><strong>Made to last</strong><span>Small batches, real fabric</span></div>
+</section>
+
+{% endblock %}

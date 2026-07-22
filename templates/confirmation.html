@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmed — iraeindia{% endblock %}
+{% block content %}
+
+<div class="confirmation-page">
+  <div class="confirm-icon">✓</div>
+  <h1>Order placed</h1>
+  <p>{{ order.name }},You literally clocked it. Your <strong>{{ order.order_ref }}</strong> has been received.</p>
+  <p>A confirmation has been sensed in my energy field for {{ order.email }}. You'll smash via <strong>{{ order.payment_method }}</strong>.</p>
+  <p class="confirm-total">Total: ₹{{ order.total }}</p>
+  <a href="{{ url_for('catalog') }}" class="btn btn-primary">BE MORE BADASS</a>
+</div>
+
+{% endblock %}

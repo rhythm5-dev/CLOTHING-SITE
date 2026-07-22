@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — THRESHOLD{% endblock %}
+{% block content %}
+
+<div class="product-detail">
+  <div class="pd-image">
+    <img src="{{ product.image }}" alt="{{ product.name }}">
+  </div>
+  <div class="pd-info">
+    <p class="product-cat">{{ product.category }} · {{ product.subcategory }}</p>
+    <h1>{{ product.name }}</h1>
+    <p class="product-rating">★ {{ product.rating }} rating</p>
+    <p class="pd-price">₹{{ product.price }}
+      {% if product.mrp > product.price %}
+        <span class="mrp">₹{{ product.mrp }}</span>
+        <span class="discount">{{ discount_pct(product) }}% off</span>
+      {% endif %}
+    </p>
+    <p class="pd-desc">{{ product.description }}</p>
+
+    <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="post" class="add-to-cart-form">
+      <div class="size-select">
+        <label>Select size</label>
+        <div class="size-options">
+          {% for s in product.sizes.split(',') %}
+          <label class="size-pill">
+            <input type="radio" name="size" value="{{ s }}" {{ 'checked' if loop.first }}>
+            <span>{{ s }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="qty-select">
+        <label for="qty">Quantity</label>
+        <input type="number" name="qty" id="qty" min="1" value="1">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Add to Bag</button>
+    </form>
+
+    <div class="pd-meta">
+      <p>✓ In stock, ships in 2–4 business days</p>
+      <p>✓ Free shipping on orders over ₹1,999</p>
+      <p>✓ 7-day easy returns — see <a href="{{ url_for('policies') }}">policies</a></p>
+    </div>
+  </div>
+</div>
+
+{% if related %}
+<section class="featured">
+  <div class="section-heading"><h2>You may also like</h2></div>
+  <div class="product-grid">
+    {% for p in related %}
+    <a href="{{ url_for('product_detail', product_id=p.id) }}" class="product-card">
+      <div class="product-image">
+        <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+        {% if discount_pct(p) %}<span class="badge">{{ discount_pct(p) }}% OFF</span>{% endif %}
+      </div>
+      <div class="product-info">
+        <p class="product-cat">{{ p.category }} · {{ p.subcategory }}</p>
+        <p class="product-name">{{ p.name }}</p>
+        <p class="product-price">₹{{ p.price }}
+          {% if p.mrp > p.price %}<span class="mrp">₹{{ p.mrp }}</span>{% endif %}
+        </p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
