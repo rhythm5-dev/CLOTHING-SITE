@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}IRAE — Clothing for the Main Characters{% endblock %}
+{% block title %}Irae — Clothing for the Season Ahead{% endblock %}
 {% block content %}
 
 <section class="hero">
   <div class="hero-text">
-    <p class="eyebrow">Ethnic and Western Collection</p>
-    <h1>Wear What<br>turns heads.</h1>
-    <p class="hero-sub">Baddies' shopping festival.</p>
+    <p class="eyebrow">Autumn / Winter Collection</p>
+    <h1>Dress for the<br>weather you're<br>walking into.</h1>
+    <p class="hero-sub">Small-batch clothing, cut for real bodies and real weeks — not just the studio floor.</p>
     <a href="{{ url_for('catalog') }}" class="btn btn-primary">Shop the collection</a>
   </div>
   <div class="hero-visual" aria-hidden="true">
@@ -18,14 +18,12 @@
 
 <section class="category-strip">
   <a href="{{ url_for('catalog') }}?category=Women" class="cat-card">
-    <img src="/static/images/red2.jpeg" alt="Women's clothing">
+    <img src="https://picsum.photos/seed/catwomen/500/620" alt="Women's clothing">
     <span>Women</span>
   </a>
   <a href="{{ url_for('catalog') }}?category=Men" class="cat-card">
-    <img src="/static/images/MEN2.jpeg" alt="Men's clothing">
+    <img src="https://picsum.photos/seed/catmen/500/620" alt="Men's clothing">
     <span>Men</span>
-  </a>
-  
   </a>
 </section>
 
@@ -38,7 +36,7 @@
     {% for p in featured %}
     <a href="{{ url_for('product_detail', product_id=p.id) }}" class="product-card">
       <div class="product-image">
-        <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+        <img src="{{ first_image(p) }}" alt="{{ p.name }}" loading="lazy">
         {% if discount_pct(p) %}<span class="badge">{{ discount_pct(p) }}% OFF</span>{% endif %}
       </div>
       <div class="product-info">
