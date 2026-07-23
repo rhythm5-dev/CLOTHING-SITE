@@ -2,12 +2,13 @@
 Irae — a clothing brand storefront
 Flask + plain sqlite3 (Python's built-in database module). No ORM needed.
 
-Run:
+Run locally:
     pip install -r requirements.txt
-    python app.py
+    python3 app.py
 Then open http://127.0.0.1:5000
 """
 
+import os
 import sqlite3
 import random
 import json
@@ -15,7 +16,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash, g
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "dev-secret-change-this-before-going-live"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-to-something-random")
 DATABASE = "store.db"
 
 
@@ -73,23 +74,24 @@ def init_db():
 
     count = conn.execute("SELECT COUNT(*) FROM product").fetchone()[0]
     if count == 0:
+        # NOTE: the "image" field can hold ONE OR MORE image paths separated by "|"
+        # e.g. "/static/images/GREEN1.jpeg|/static/images/GREEN2.jpeg|/static/images/GREEN3.jpeg"
+        # This shows a swipeable/arrow slideshow on the product page automatically
+        # whenever there's more than one photo for a product.
         items = [
             ("KHATTI KAIRI Co-ord set", "Women", "Sets", 1499, 1499,
              "Elegant co-ord set with pinteresty vibes.",
-             "/static/images/GREEN1.jpeg", "S,M,L,XL,XXL"),
+             "/static/images/GREEN1.jpeg|/static/images/GREEN2.jpeg|/static/images/GREEN3.jpeg", "S,M,L,XL,XXL"),
             ("Cotton T-Shirt", "Men", "Shirts", 599, 599,
              "Crisp cotton shirt with a tailored slim fit, mother-of-pearl buttons, and a spread collar.",
              "/static/images/MEN1.jpeg", "S,M,L,XL"),
             ("BLACK SWAN Off shoulder dress", "Women", "Dresses", 1499, 1499,
              "Off-shoulder long dress in a bold black print, corset finsih, and flattering fit.",
-             "/static/images/BLACK2.jpeg", "S,M,L,XL"),
+             "/static/images/BLACK1.jpeg|/static/images/BLACK2.jpeg", "S,M,L,XL"),
             ("NURA cherry red dress", "Women", "Dresses", 1499, 1499,
              "Stunning cherry red dress with a fitted bodice and perfect fit.",
-             "/static/images/red1.jpeg", "S,M,L,XL"),
+             "/static/images/red1.jpeg|/static/images/red2.jpeg|/static/images/red3.jpeg", "S,M,L,XL"),
         ]
-
-        
-        
         conn.executemany(
             "INSERT INTO product (name, category, subcategory, price, mrp, description, image, sizes) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -103,6 +105,18 @@ def discount_pct(row):
     if row["mrp"] <= row["price"]:
         return 0
     return round((row["mrp"] - row["price"]) / row["mrp"] * 100)
+
+
+def image_list(row):
+    """Split the stored image field (may contain multiple paths separated by '|') into a list."""
+    raw = row["image"]
+    return [p.strip() for p in raw.split("|") if p.strip()]
+
+
+def first_image(row):
+    """Get just the first image, for use as a thumbnail in grids/cards."""
+    imgs = image_list(row)
+    return imgs[0] if imgs else ""
 
 
 # ---------------------------------------------------------------------------
@@ -137,6 +151,8 @@ def inject_cart_count():
 
 
 app.jinja_env.globals["discount_pct"] = discount_pct
+app.jinja_env.globals["image_list"] = image_list
+app.jinja_env.globals["first_image"] = first_image
 
 
 # ---------------------------------------------------------------------------
@@ -178,7 +194,7 @@ def catalog():
         sql += " ORDER BY rating DESC"
 
     products = db.execute(sql, params).fetchall()
-    categories = ["All", "Men", "Women", "Unisex"]
+    categories = ["All", "Men", "Women"]
     all_subs = db.execute("SELECT DISTINCT subcategory FROM product ORDER BY subcategory").fetchall()
     subcats = ["All"] + [r["subcategory"] for r in all_subs]
     return render_template("catalog.html", products=products, categories=categories,
@@ -262,7 +278,7 @@ def checkout():
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (order_ref, request.form["name"], request.form["email"], request.form["phone"],
              request.form["address"], request.form["city"], request.form["pincode"],
-             json.dumps(items_summary), grand_total, request.form.get("payment_method", "COD"),
+             json.dumps(items_summary), grand_total, request.form.get("payment_method", "UPI"),
              datetime.utcnow().isoformat()),
         )
         db.commit()
@@ -302,4 +318,5 @@ with app.app_context():
     init_db()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
