@@ -46,7 +46,7 @@
       {% for p in products %}
       <a href="{{ url_for('product_detail', product_id=p.id) }}" class="product-card">
         <div class="product-image">
-          <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+          <img src="{{ first_image(p) }}" alt="{{ p.name }}" loading="lazy">
           {% if discount_pct(p) %}<span class="badge">{{ discount_pct(p) }}% OFF</span>{% endif %}
         </div>
         <div class="product-info">
