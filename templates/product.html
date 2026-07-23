@@ -1,10 +1,26 @@
 {% extends "base.html" %}
-{% block title %}{{ product.name }} — THRESHOLD{% endblock %}
+{% block title %}{{ product.name }} — Irae{% endblock %}
 {% block content %}
 
 <div class="product-detail">
   <div class="pd-image">
-    <img src="{{ product.image }}" alt="{{ product.name }}">
+    {% set images = image_list(product) %}
+    <div class="slideshow" data-count="{{ images|length }}">
+      <div class="slideshow-track">
+        {% for img in images %}
+        <img src="{{ img }}" alt="{{ product.name }} photo {{ loop.index }}" class="slide">
+        {% endfor %}
+      </div>
+      {% if images|length > 1 %}
+      <button type="button" class="slide-arrow slide-prev" aria-label="Previous photo">&#8249;</button>
+      <button type="button" class="slide-arrow slide-next" aria-label="Next photo">&#8250;</button>
+      <div class="slide-dots">
+        {% for img in images %}
+        <span class="slide-dot {{ 'active' if loop.first }}"></span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
   </div>
   <div class="pd-info">
     <p class="product-cat">{{ product.category }} · {{ product.subcategory }}</p>
@@ -52,7 +68,7 @@
     {% for p in related %}
     <a href="{{ url_for('product_detail', product_id=p.id) }}" class="product-card">
       <div class="product-image">
-        <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+        <img src="{{ first_image(p) }}" alt="{{ p.name }}" loading="lazy">
         {% if discount_pct(p) %}<span class="badge">{{ discount_pct(p) }}% OFF</span>{% endif %}
       </div>
       <div class="product-info">
