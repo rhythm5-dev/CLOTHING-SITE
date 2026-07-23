@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Irae — Clothing for the Season Ahead{% endblock %}
+{% block title %}Irae — Clothing for the Vibe that you are{% endblock %}
 {% block content %}
 
 <section class="hero">
   <div class="hero-text">
-    <p class="eyebrow">Autumn / Winter Collection</p>
-    <h1>Dress for the<br>weather you're<br>walking into.</h1>
+    <p class="eyebrow">Ethnic/Western collection</p>
+    <h1>Dress to make <br>heads turn.</h1>
     <p class="hero-sub">Small-batch clothing, cut for real bodies and real weeks — not just the studio floor.</p>
     <a href="{{ url_for('catalog') }}" class="btn btn-primary">Shop the collection</a>
   </div>
@@ -18,11 +18,11 @@
 
 <section class="category-strip">
   <a href="{{ url_for('catalog') }}?category=Women" class="cat-card">
-    <img src="https://picsum.photos/seed/catwomen/500/620" alt="Women's clothing">
+    <img src="/static/images/GREEN2.jpeg">
     <span>Women</span>
   </a>
   <a href="{{ url_for('catalog') }}?category=Men" class="cat-card">
-    <img src="https://picsum.photos/seed/catmen/500/620" alt="Men's clothing">
+    <img src="/static/images/MEN2.jpeg" alt="Men's clothing">
     <span>Men</span>
   </a>
 </section>
