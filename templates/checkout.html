@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Checkout — THRESHOLD{% endblock %}
+{% block title %}Checkout — Irae{% endblock %}
 {% block content %}
 
 <div class="checkout-page">
@@ -16,12 +16,13 @@
         <label>Pincode<input type="text" name="pincode" required></label>
       </div>
 
-      <h3>Payment method</h3>
-      <p class="note">This is a demo store — no real payment is processed. In a production build, this step
-        would hand off to a gateway like Razorpay or Stripe.</p>
-      <label class="radio-row"><input type="radio" name="payment_method" value="COD" checked> Cash on Delivery</label>
-      <label class="radio-row"><input type="radio" name="payment_method" value="Card (demo)"> Credit / Debit Card</label>
-      <label class="radio-row"><input type="radio" name="payment_method" value="UPI (demo)"> UPI</label>
+      <h3>Payment</h3>
+      <input type="hidden" name="payment_method" value="UPI">
+      <div class="note">
+        Pay <strong>₹{{ grand_total }}</strong> via UPI to: <strong>8209944322@kotakbank</strong><br>
+        After paying, place the order below and email a screenshot of your payment along with your
+        order number to <strong>iraeclothing.in@gmail.com</strong> — we'll confirm and ship once received.
+      </div>
 
       <button type="submit" class="btn btn-primary btn-block">Place Order — ₹{{ grand_total }}</button>
     </form>
