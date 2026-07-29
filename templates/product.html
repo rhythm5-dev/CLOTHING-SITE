@@ -56,7 +56,6 @@
     <div class="pd-meta">
       <p>✓ In stock, ships in 2–4 business days</p>
       <p>✓ Free shipping on orders over ₹1,999</p>
-      <p>✓ 7-day easy returns — see <a href="{{ url_for('policies') }}">policies</a></p>
     </div>
   </div>
 </div>
@@ -69,7 +68,13 @@
     <a href="{{ url_for('product_detail', product_id=p.id) }}" class="product-card">
       <div class="product-image">
         <img src="{{ first_image(p) }}" alt="{{ p.name }}" loading="lazy">
-        {% if discount_pct(p) %}<span class="badge">{{ discount_pct(p) }}% OFF</span>{% endif %}
+        {% if discount_pct(p) %}
+        <span class="badge">{{ discount_pct(p) }}% OFF</span>
+        <div class="price-banner">
+          <span class="price-banner-old">₹{{ p.mrp }}</span>
+          <span class="price-banner-new">₹{{ p.price }}</span>
+        </div>
+        {% endif %}
       </div>
       <div class="product-info">
         <p class="product-cat">{{ p.category }} · {{ p.subcategory }}</p>
@@ -83,167 +88,5 @@
   </div>
 </section>
 {% endif %}
-
-<style>
-.slideshow {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-}
-
-.slideshow-track {
-  display: flex;
-  transition: transform 0.3s ease-in-out;
-}
-
-.slide {
-  min-width: 100%;
-  flex-shrink: 0;
-  display: block;
-}
-
-.slide-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.8);
-  border: none;
-  padding: 10px 15px;
-  cursor: pointer;
-  font-size: 28px;
-  z-index: 10;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.slide-arrow:hover {
-  background: rgba(255, 255, 255, 1);
-}
-
-.slide-prev {
-  left: 10px;
-}
-
-.slide-next {
-  right: 10px;
-}
-
-.slide-dots {
-  position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 8px;
-  z-index: 10;
-}
-
-.slide-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.slide-dot.active {
-  background: white;
-}
-
-.slide-dot:hover {
-  background: rgba(255, 255, 255, 0.8);
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const slideshow = document.querySelector('.slideshow');
-  if (!slideshow) return;
-  
-  const track = slideshow.querySelector('.slideshow-track');
-  const slides = Array.from(track.children);
-  const nextButton = slideshow.querySelector('.slide-next');
-  const prevButton = slideshow.querySelector('.slide-prev');
-  const dotsNav = slideshow.querySelector('.slide-dots');
-  const dots = Array.from(dotsNav.children);
-  
-  let currentIndex = 0;
-  const slideCount = slides.length;
-  
-  // If only one slide, hide navigation
-  if (slideCount <= 1) {
-    if (nextButton) nextButton.style.display = 'none';
-    if (prevButton) prevButton.style.display = 'none';
-    if (dotsNav) dotsNav.style.display = 'none';
-    return;
-  }
-  
-  const updateSlidePosition = () => {
-    const slideWidth = slides[0].getBoundingClientRect().width;
-    track.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
-    
-    // Update dots
-    dots.forEach((dot, index) => {
-      dot.classList.toggle('active', index === currentIndex);
-    });
-  };
-  
-  // Auto-advance slides every 5 seconds
-  let autoSlide = setInterval(() => {
-    currentIndex = (currentIndex + 1) % slideCount;
-    updateSlidePosition();
-  }, 5000);
-  
-  // Reset auto-slide on manual navigation
-  const resetAutoSlide = () => {
-    clearInterval(autoSlide);
-    autoSlide = setInterval(() => {
-      currentIndex = (currentIndex + 1) % slideCount;
-      updateSlidePosition();
-    }, 5000);
-  };
-  
-  // Next button
-  if (nextButton) {
-    nextButton.addEventListener('click', () => {
-      currentIndex = (currentIndex + 1) % slideCount;
-      updateSlidePosition();
-      resetAutoSlide();
-    });
-  }
-  
-  // Previous button
-  if (prevButton) {
-    prevButton.addEventListener('click', () => {
-      currentIndex = (currentIndex - 1 + slideCount) % slideCount;
-      updateSlidePosition();
-      resetAutoSlide();
-    });
-  }
-  
-  // Dot navigation
-  if (dotsNav) {
-    dotsNav.addEventListener('click', (e) => {
-      const targetDot = e.target.closest('.slide-dot');
-      if (!targetDot) return;
-      
-      currentIndex = dots.findIndex(dot => dot === targetDot);
-      updateSlidePosition();
-      resetAutoSlide();
-    });
-  }
-  
-  // Initialize
-  updateSlidePosition();
-  
-  // Handle window resize
-  window.addEventListener('resize', updateSlidePosition);
-});
-</script>
 
 {% endblock %}
