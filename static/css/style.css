@@ -1,18 +1,18 @@
-/* IRAE â€” storefront styles
+/* THRESHOLD — storefront styles
    Palette: warm parchment bg, near-black ink, deep olive accent, muted gold secondary
 */
 
 :root {
-  --ink: #1D1B18;
-  --parchment: #F6F3EC;
-  --parchment-dim: #EDE8DC;
-  --olive: #4B5A3A;
-  --olive-dark: #38442B;
-  --gold: #B68A3E;
-  --line: #DAD3C2;
+  --ink: #441711;
+  --parchment: #E6DDDE;
+  --parchment-dim: #DCCFD1;
+  --olive: #441711;
+  --olive-dark: #2E0F0B;
+  --gold: #8C5A4A;
+  --line: #C9B9BB;
   --white: #FFFFFF;
   --error: #A33A2E;
-  --success: #3C5E2E;
+  --success: #5C3A2E;
   --font-display: 'Fraunces', serif;
   --font-body: 'Inter', sans-serif;
 }
@@ -72,6 +72,17 @@ h1, h2, h3 {
   letter-spacing: 0.04em;
   font-weight: 600;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.logo-img {
+  height: 48px;
+  width: auto;
+  display: block;
+  border-radius: 50%;
+}
+.footer-logo .logo-img {
+  height: 56px;
 }
 .menu-toggle {
   display: none;
@@ -277,6 +288,27 @@ h1, h2, h3 {
   padding: 3px 8px;
   border-radius: 3px;
 }
+.price-banner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0));
+  padding: 22px 10px 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.price-banner-old {
+  color: rgba(255,255,255,0.75);
+  text-decoration: line-through;
+  font-size: 0.78rem;
+}
+.price-banner-new {
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1rem;
+}
 .product-cat { font-size: 0.76rem; color: #857F70; margin: 0 0 3px; text-transform: uppercase; letter-spacing: 0.04em; }
 .product-name { font-weight: 600; font-size: 0.95rem; margin: 0 0 4px; }
 .product-price { font-weight: 700; font-size: 0.95rem; margin: 0; }
@@ -288,7 +320,7 @@ h1, h2, h3 {
   background: var(--olive-dark);
   color: var(--parchment);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   padding: 40px 24px;
   text-align: center;
   gap: 20px;
