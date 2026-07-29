@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Irae — Clothing for the Vibe that you are{% endblock %}
+{% block title %}Irae — Clothing for the Season Ahead{% endblock %}
 {% block content %}
 
 <section class="hero">
   <div class="hero-text">
-    <p class="eyebrow">Ethnic/Western collection</p>
-    <h1>Dress to make <br>heads turn.</h1>
-    <p class="hero-sub">Small-batch clothing, cut for real bodies and real weeks — not just the studio floor.</p>
+    <p class="eyebrow">New Collection</p>
+    <h1>Wear what<br>turns heads.</h1>
+    <p class="hero-sub">Statement pieces, cut for the days you want to be seen. Made in small batches — never mass-produced.</p>
     <a href="{{ url_for('catalog') }}" class="btn btn-primary">Shop the collection</a>
   </div>
   <div class="hero-visual" aria-hidden="true">
@@ -18,11 +18,11 @@
 
 <section class="category-strip">
   <a href="{{ url_for('catalog') }}?category=Women" class="cat-card">
-    <img src="/static/images/GREEN2.jpeg">
+    <img src="/static/images/red1.jpeg" alt="Women's clothing">
     <span>Women</span>
   </a>
   <a href="{{ url_for('catalog') }}?category=Men" class="cat-card">
-    <img src="/static/images/MEN2.jpeg" alt="Men's clothing">
+    <img src="/static/images/MEN1.jpeg" alt="Men's clothing">
     <span>Men</span>
   </a>
 </section>
@@ -37,7 +37,13 @@
     <a href="{{ url_for('product_detail', product_id=p.id) }}" class="product-card">
       <div class="product-image">
         <img src="{{ first_image(p) }}" alt="{{ p.name }}" loading="lazy">
-        {% if discount_pct(p) %}<span class="badge">{{ discount_pct(p) }}% OFF</span>{% endif %}
+        {% if discount_pct(p) %}
+        <span class="badge">{{ discount_pct(p) }}% OFF</span>
+        <div class="price-banner">
+          <span class="price-banner-old">₹{{ p.mrp }}</span>
+          <span class="price-banner-new">₹{{ p.price }}</span>
+        </div>
+        {% endif %}
       </div>
       <div class="product-info">
         <p class="product-cat">{{ p.category }} · {{ p.subcategory }}</p>
@@ -53,7 +59,6 @@
 
 <section class="value-strip">
   <div><strong>Free shipping</strong><span>On orders over ₹1,999</span></div>
-  <div><strong>7-day returns</strong><span>No questions asked</span></div>
   <div><strong>Secure checkout</strong><span>Your details stay yours</span></div>
   <div><strong>Made to last</strong><span>Small batches, real fabric</span></div>
 </section>
