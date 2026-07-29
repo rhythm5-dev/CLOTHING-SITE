@@ -10,12 +10,14 @@
 </head>
 <body>
 
-<div class="announce-bar">FREE SHIPPING ON ORDERS OVER ₹1,999 &nbsp;•&nbsp; EASY 7-DAY RETURNS &nbsp;•&nbsp; NEW ARRIVALS EVERY FRIDAY</div>
+<div class="announce-bar">FREE SHIPPING ON ORDERS OVER ₹1,999 &nbsp;•&nbsp; NEW ARRIVALS EVERY FRIDAY</div>
 
 <header class="site-header">
   <div class="header-inner">
     <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
-    <a href="{{ url_for('home') }}" class="logo">Irae</a>
+    <a href="{{ url_for('home') }}" class="logo">
+      <img src="/static/images/irae-logo.jpeg" alt="Irae" class="logo-img">
+    </a>
     <nav class="main-nav" id="mainNav">
       <a href="{{ url_for('catalog') }}?category=Women">Women</a>
       <a href="{{ url_for('catalog') }}?category=Men">Men</a>
@@ -49,7 +51,7 @@
 <footer class="site-footer">
   <div class="footer-grid">
     <div>
-      <div class="logo footer-logo">Irae</div>
+      <div class="logo footer-logo"><img src="/static/images/irae-logo.jpeg" alt="Irae" class="logo-img"></div>
       <p>Considered clothing for the season ahead. Designed in small batches, made to be worn often.</p>
     </div>
     <div>
