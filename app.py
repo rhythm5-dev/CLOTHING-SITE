@@ -79,16 +79,16 @@ def init_db():
         # This shows a swipeable/arrow slideshow on the product page automatically
         # whenever there's more than one photo for a product.
         items = [
-            ("KHATTI KAIRI Co-ord set", "Women", "Sets", 1499, 1499,
+            ("KHATTI KAIRI Co-ord set", "Women", "Sets", 1599, 1599,
              "Elegant co-ord set with pinteresty vibes.",
              "/static/images/GREEN1.jpeg|/static/images/GREEN2.jpeg|/static/images/GREEN3.jpeg", "S,M,L,XL,XXL"),
-            ("Cotton T-Shirt", "Men", "Shirts", 599, 599,
+            ("Cotton T-Shirt", "Men", "Shirts", 699, 699,
              "Crisp cotton shirt with a tailored slim fit, mother-of-pearl buttons, and a spread collar.",
-             "/static/images/MEN1.jpeg", "S,M,L,XL"),
-            ("BLACK SWAN Off shoulder dress", "Women", "Dresses", 1499, 1499,
+             "/static/images/MEN1.jpeg|/static/images/MEN2.jpeg|/static/images/MEN3.jpeg", "S,M,L,XL"),
+            ("BLACK SWAN Off shoulder dress", "Women", "Dresses", 1599, 1599,
              "Off-shoulder long dress in a bold black print, corset finsih, and flattering fit.",
-             "/static/images/BLACK1.jpeg|/static/images/BLACK2.jpeg", "S,M,L,XL"),
-            ("NURA cherry red dress", "Women", "Dresses", 1499, 1499,
+             "/static/images/BLACK1.jpeg|/static/images/BLACK2.jpeg|/static/images/BLACK3.jpeg", "S,M,L,XL"),
+            ("NURA cherry red dress", "Women", "Dresses", 1599, 1599,
              "Stunning cherry red dress with a fitted bodice and perfect fit.",
              "/static/images/red1.jpeg|/static/images/red2.jpeg|/static/images/red3.jpeg", "S,M,L,XL"),
         ]
