@@ -1,45 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Checkout — Irae{% endblock %}
+{% block title %}Checkout — IRAE{% endblock %}
 {% block content %}
 
-<div class="checkout-page">
-  <h1>Checkout</h1>
-  <div class="checkout-layout">
-    <form method="post" class="checkout-form">
-      <h3>Shipping details</h3>
-      <label>Full name<input type="text" name="name" required></label>
-      <label>Email<input type="email" name="email" required></label>
-      <label>Phone<input type="tel" name="phone" required></label>
-      <label>Address<textarea name="address" rows="3" required></textarea></label>
-      <div class="form-row">
-        <label>City<input type="text" name="city" required></label>
-        <label>Pincode<input type="text" name="pincode" required></label>
-      </div>
-
-      <h3>Payment</h3>
-      <input type="hidden" name="payment_method" value="UPI">
-      <div class="note">
-        Pay <strong>₹{{ grand_total }}</strong> via UPI to: <strong>8209944322@kotakbank</strong><br>
-        After paying, place the order below and email a screenshot of your payment along with your
-        order number to <strong>iraeclothing.in@gmail.com</strong> — we'll confirm and ship once received.
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-block">Place Order — ₹{{ grand_total }}</button>
-    </form>
-
-    <div class="cart-summary">
-      <h3>Order Summary</h3>
-      {% for d in details %}
-      <div class="summary-line-item">
-        <span>{{ d.product.name }} ({{ d.size }}) × {{ d.qty }}</span>
-        <span>₹{{ d.line_total }}</span>
-      </div>
-      {% endfor %}
-      <div class="summary-row"><span>Subtotal</span><span>₹{{ total }}</span></div>
-      <div class="summary-row"><span>Shipping</span><span>{{ '₹' ~ shipping if shipping else 'FREE' }}</span></div>
-      <div class="summary-row summary-total"><span>Total</span><span>₹{{ grand_total }}</span></div>
+<div style="max-width: 500px; margin: 40px auto; padding: 20px;">
+  <h2>Shipping Details</h2>
+  
+  <!-- Cart Summary -->
+  <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+    {% for item in details %}
+    <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+      <span>{{ item.product.name }} × {{ item.qty }}</span>
+      <span>₹{{ item.line_total }}</span>
+    </div>
+    {% endfor %}
+    <hr>
+    <div style="display: flex; justify-content: space-between; font-weight: bold;">
+      <span>Total</span>
+      <span>₹{{ grand_total }}</span>
     </div>
   </div>
+  
+  <form method="POST">
+    <div style="display: grid; gap: 12px;">
+      <input type="text" name="name" placeholder="Full Name" required 
+             style="padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
+      <input type="email" name="email" placeholder="Email" required 
+             style="padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
+      <input type="tel" name="phone" placeholder="Phone Number" required 
+             style="padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
+      <textarea name="address" placeholder="Full Address" required 
+                style="padding: 12px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <input type="text" name="city" placeholder="City" required 
+               style="padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
+        <input type="text" name="pincode" placeholder="PIN Code" required 
+               style="padding: 12px; border: 1px solid #ddd; border-radius: 5px;">
+      </div>
+      <button type="submit" style="background: #000; color: white; padding: 15px; 
+               border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px;">
+        Continue to Payment →
+      </button>
+    </div>
+  </form>
 </div>
 
 {% endblock %}
