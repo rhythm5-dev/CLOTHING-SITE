@@ -13,16 +13,35 @@ import sqlite3
 import random
 import json
 from datetime import datetime
+from io import BytesIO
+import base64
 from flask import Flask, render_template, request, redirect, url_for, session, flash, g
+from flask_mail import Mail, Message
+import qrcode
+from PIL import Image
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-to-something-random")
 DATABASE = "store.db"
 
+# ==================== EMAIL CONFIGURATION ====================
+# REPLACE THESE with your actual credentials
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'iraeclothing.in@gmail.com'  # CHANGE THIS
+app.config['MAIL_PASSWORD'] = os.environ.get('SENDGRID_API_KEY')    # CHANGE THIS - Gmail App Password
+app.config['MAIL_DEFAULT_SENDER'] = ('IRAE Clothing', 'iraeclothing.in@gmail.com')  # CHANGE THIS
 
-# ---------------------------------------------------------------------------
-# DATABASE HELPERS
-# ---------------------------------------------------------------------------
+mail = Mail(app)
+
+# Your brand email where you receive order notifications
+BRAND_EMAIL = 'iraeclothing.in@gmail.com'  # CHANGE THIS
+
+# Your UPI ID for receiving payments
+UPI_ID = '8209944322@kotakbank'  # CHANGE THIS - your actual UPI ID
+
+# ==================== DATABASE HELPERS ====================
 
 def get_db():
     if "db" not in g:
@@ -67,6 +86,7 @@ def init_db():
             items_json TEXT NOT NULL,
             total INTEGER NOT NULL,
             payment_method TEXT NOT NULL,
+            payment_status TEXT DEFAULT 'pending',
             created_at TEXT NOT NULL
         )
     """)
@@ -74,10 +94,6 @@ def init_db():
 
     count = conn.execute("SELECT COUNT(*) FROM product").fetchone()[0]
     if count == 0:
-        # NOTE: the "image" field can hold ONE OR MORE image paths separated by "|"
-        # e.g. "/static/images/GREEN1.jpeg|/static/images/GREEN2.jpeg|/static/images/GREEN3.jpeg"
-        # This shows a swipeable/arrow slideshow on the product page automatically
-        # whenever there's more than one photo for a product.
         items = [
             ("KHATTI KAIRI Co-ord set", "Women", "Sets", 1599, 1599,
              "Elegant co-ord set with pinteresty vibes.",
@@ -119,9 +135,163 @@ def first_image(row):
     return imgs[0] if imgs else ""
 
 
-# ---------------------------------------------------------------------------
-# CART HELPERS  (cart lives in session as {"product_id::size": qty})
-# ---------------------------------------------------------------------------
+# ==================== EMAIL FUNCTIONS ====================
+
+def send_order_emails(order_ref, name, email, phone, address, city, pincode, items_json, total):
+    """Send confirmation emails to brand owner AND customer"""
+    
+    try:
+        items = json.loads(items_json) if isinstance(items_json, str) else items_json
+        
+        # Build items HTML
+        items_html = ""
+        for item in items:
+            items_html += f"""
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #eee;">{item['name']}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">{item.get('size', '-')}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">{item['qty']}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">₹{item['price']}</td>
+            </tr>
+            """
+        
+        # ===== EMAIL TO BRAND OWNER (YOU) =====
+        brand_msg = Message(
+            subject=f'🛍️ NEW ORDER #{order_ref} - ₹{total}',
+            recipients=[BRAND_EMAIL]
+        )
+        brand_msg.html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #000; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+                <h1 style="margin: 0; font-size: 24px;">🛍️ NEW ORDER RECEIVED!</h1>
+            </div>
+            <div style="padding: 20px; border: 2px solid #000; border-top: none; border-radius: 0 0 8px 8px;">
+                <h2 style="color: #333;">Order #{order_ref}</h2>
+                <p><strong>Date:</strong> {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
+                <p><strong>Total Amount:</strong> <span style="font-size: 28px; color: #28a745; font-weight: bold;">₹{total}</span></p>
+                <p><strong>Payment Method:</strong> UPI</p>
+                
+                <hr style="margin: 20px 0;">
+                
+                <h3>📦 Customer Details</h3>
+                <table style="width: 100%;">
+                    <tr><td style="padding: 5px;"><strong>Name:</strong></td><td>{name}</td></tr>
+                    <tr><td style="padding: 5px;"><strong>Email:</strong></td><td>{email}</td></tr>
+                    <tr><td style="padding: 5px;"><strong>Phone:</strong></td><td>{phone}</td></tr>
+                    <tr><td style="padding: 5px;"><strong>Address:</strong></td><td>{address}, {city} - {pincode}</td></tr>
+                </table>
+                
+                <hr style="margin: 20px 0;">
+                
+                <h3>🛒 Order Items</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 12px; text-align: left;">Product</th>
+                            <th style="padding: 12px; text-align: center;">Size</th>
+                            <th style="padding: 12px; text-align: center;">Qty</th>
+                            <th style="padding: 12px; text-align: right;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items_html}
+                    </tbody>
+                </table>
+                
+                <div style="background: #fff3cd; padding: 15px; margin-top: 20px; border-radius: 5px;">
+                    <p style="margin: 0; color: #856404; font-weight: bold;">⚡ ACTION REQUIRED: Process and ship this order!</p>
+                </div>
+            </div>
+        </div>
+        """
+        mail.send(brand_msg)
+        print(f"✅ Brand notification sent for Order #{order_ref}")
+        
+        # ===== EMAIL TO CUSTOMER =====
+        customer_msg = Message(
+            subject=f'✅ Order Confirmed - IRAE #{order_ref}',
+            recipients=[email]
+        )
+        customer_msg.html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #000; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                <h1 style="margin: 0; font-size: 32px; letter-spacing: 3px;">IRAE</h1>
+                <p style="margin: 5px 0 0 0;">Clothing for the Vibe that you are</p>
+            </div>
+            <div style="padding: 30px; border: 2px solid #000; border-top: none; border-radius: 0 0 8px 8px;">
+                <h2 style="color: #28a745;">✅ Order Confirmed!</h2>
+                <p>Thank you for shopping with us, <strong>{name}</strong>!</p>
+                
+                <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px;">
+                    <p style="margin: 0;"><strong>Order Number:</strong> {order_ref}</p>
+                    <p style="margin: 10px 0 0 0;"><strong>Total Paid:</strong> <span style="font-size: 24px; color: #28a745;">₹{total}</span></p>
+                </div>
+                
+                <h3>Order Details:</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 10px; text-align: left;">Product</th>
+                            <th style="padding: 10px; text-align: center;">Size</th>
+                            <th style="padding: 10px; text-align: center;">Qty</th>
+                            <th style="padding: 10px; text-align: right;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items_html}
+                    </tbody>
+                </table>
+                
+                <hr style="margin: 20px 0;">
+                
+                <p><strong>Shipping to:</strong><br>
+                {name}<br>
+                {address}<br>
+                {city} - {pincode}<br>
+                Phone: {phone}</p>
+                
+                <div style="background: #f0f8ff; padding: 15px; margin-top: 20px; border-radius: 5px;">
+                    <p style="margin: 0;">📦 We'll notify you when your order ships!</p>
+                </div>
+                
+                <p style="color: #666; margin-top: 20px;">Questions? Contact us at {BRAND_EMAIL}</p>
+            </div>
+            <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                <p>© {datetime.now().year} IRAE Clothing. All rights reserved.</p>
+            </div>
+        </div>
+        """
+        mail.send(customer_msg)
+        print(f"✅ Customer confirmation sent for Order #{order_ref}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Email error: {e}")
+        return False
+
+
+def generate_upi_qr(amount, order_ref):
+    """Generate UPI payment QR code"""
+    upi_url = f"upi://pay?pa={UPI_ID}&pn=IRAE%20Clothing&am={amount}&tr={order_ref}&tn=Order%20{order_ref}"
+    
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(upi_url)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    
+    return img_str
+
+
+# ==================== CART HELPERS ====================
 
 def get_cart():
     return session.setdefault("cart", {})
@@ -155,9 +325,7 @@ app.jinja_env.globals["image_list"] = image_list
 app.jinja_env.globals["first_image"] = first_image
 
 
-# ---------------------------------------------------------------------------
-# ROUTES — PAGES
-# ---------------------------------------------------------------------------
+# ==================== ROUTES — PAGES ====================
 
 @app.route("/")
 def home():
@@ -272,22 +440,84 @@ def checkout():
         order_ref = "TH" + str(random.randint(100000, 999999))
         items_summary = [{"name": d["product"]["name"], "size": d["size"], "qty": d["qty"],
                            "price": d["product"]["price"]} for d in details]
+        
+        # Save order as pending payment
         db.execute(
             """INSERT INTO "order"
-               (order_ref, name, email, phone, address, city, pincode, items_json, total, payment_method, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               (order_ref, name, email, phone, address, city, pincode, items_json, total, payment_method, payment_status, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (order_ref, request.form["name"], request.form["email"], request.form["phone"],
              request.form["address"], request.form["city"], request.form["pincode"],
-             json.dumps(items_summary), grand_total, request.form.get("payment_method", "UPI"),
+             json.dumps(items_summary), grand_total, "UPI", "pending",
              datetime.utcnow().isoformat()),
         )
         db.commit()
-        session["cart"] = {}
+        
+        # Generate QR code for payment
+        qr_code = generate_upi_qr(grand_total, order_ref)
+        
+        # Store order_ref in session for payment confirmation
+        session["pending_order_ref"] = order_ref
         session.modified = True
-        return redirect(url_for("order_confirmation", order_ref=order_ref))
+        
+        return render_template("checkout.html", 
+                             details=details, 
+                             total=total,
+                             shipping=shipping, 
+                             grand_total=grand_total,
+                             qr_code=qr_code,
+                             order_ref=order_ref,
+                             upi_id=UPI_ID)
 
     return render_template("checkout.html", details=details, total=total,
                             shipping=shipping, grand_total=grand_total)
+
+
+@app.route("/confirm-payment", methods=["POST"])
+def confirm_payment():
+    """After customer pays via QR, they confirm and we send emails"""
+    order_ref = request.form.get("order_ref")
+    
+    if not order_ref:
+        flash("Invalid order reference.", "error")
+        return redirect(url_for("home"))
+    
+    db = get_db()
+    order = db.execute('SELECT * FROM "order" WHERE order_ref = ?', (order_ref,)).fetchone()
+    
+    if not order:
+        flash("Order not found.", "error")
+        return redirect(url_for("home"))
+    
+    # Update payment status
+    db.execute('UPDATE "order" SET payment_status = ? WHERE order_ref = ?', 
+              ("paid", order_ref))
+    db.commit()
+    
+    # Send confirmation emails
+    email_sent = send_order_emails(
+        order_ref=order["order_ref"],
+        name=order["name"],
+        email=order["email"],
+        phone=order["phone"],
+        address=order["address"],
+        city=order["city"],
+        pincode=order["pincode"],
+        items_json=order["items_json"],
+        total=order["total"]
+    )
+    
+    # Clear cart
+    session["cart"] = {}
+    session.pop("pending_order_ref", None)
+    session.modified = True
+    
+    if email_sent:
+        flash("Payment confirmed! Order confirmation sent to your email.", "success")
+    else:
+        flash("Payment confirmed! (Email notification delayed - we'll send it shortly)", "warning")
+    
+    return redirect(url_for("order_confirmation", order_ref=order_ref))
 
 
 @app.route("/order-confirmation/<order_ref>")
