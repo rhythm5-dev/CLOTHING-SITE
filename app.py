@@ -25,21 +25,17 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-to-somethin
 DATABASE = "store.db"
 
 # ==================== EMAIL CONFIGURATION ====================
-# REPLACE THESE with your actual credentials
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'iraeclothing.in@gmail.com'  # CHANGE THIS
-app.config['MAIL_PASSWORD'] = os.environ.get('SENDGRID_API_KEY')    # CHANGE THIS - Gmail App Password
-app.config['MAIL_DEFAULT_SENDER'] = ('IRAE Clothing', 'iraeclothing.in@gmail.com')  # CHANGE THIS
+app.config['MAIL_USERNAME'] = 'iraeclothing.in@gmail.com'
+app.config['MAIL_PASSWORD'] = os.environ.get('SENDGRID_API_KEY')
+app.config['MAIL_DEFAULT_SENDER'] = ('IRAE Clothing', 'iraeclothing.in@gmail.com')
 
 mail = Mail(app)
 
-# Your brand email where you receive order notifications
-BRAND_EMAIL = 'iraeclothing.in@gmail.com'  # CHANGE THIS
-
-# Your UPI ID for receiving payments
-UPI_ID = '8209944322@kotakbank'  # CHANGE THIS - your actual UPI ID
+BRAND_EMAIL = 'iraeclothing.in@gmail.com'
+UPI_ID = os.environ.get('UPI_ID', '8209944322@kotakbank')
 
 # ==================== DATABASE HELPERS ====================
 
@@ -124,13 +120,11 @@ def discount_pct(row):
 
 
 def image_list(row):
-    """Split the stored image field (may contain multiple paths separated by '|') into a list."""
     raw = row["image"]
     return [p.strip() for p in raw.split("|") if p.strip()]
 
 
 def first_image(row):
-    """Get just the first image, for use as a thumbnail in grids/cards."""
     imgs = image_list(row)
     return imgs[0] if imgs else ""
 
@@ -143,7 +137,6 @@ def send_order_emails(order_ref, name, email, phone, address, city, pincode, ite
     try:
         items = json.loads(items_json) if isinstance(items_json, str) else items_json
         
-        # Build items HTML
         items_html = ""
         for item in items:
             items_html += f"""
@@ -155,7 +148,7 @@ def send_order_emails(order_ref, name, email, phone, address, city, pincode, ite
             </tr>
             """
         
-        # ===== EMAIL TO BRAND OWNER (YOU) =====
+        # Email to brand owner
         brand_msg = Message(
             subject=f'🛍️ NEW ORDER #{order_ref} - ₹{total}',
             recipients=[BRAND_EMAIL]
@@ -170,9 +163,7 @@ def send_order_emails(order_ref, name, email, phone, address, city, pincode, ite
                 <p><strong>Date:</strong> {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
                 <p><strong>Total Amount:</strong> <span style="font-size: 28px; color: #28a745; font-weight: bold;">₹{total}</span></p>
                 <p><strong>Payment Method:</strong> UPI</p>
-                
                 <hr style="margin: 20px 0;">
-                
                 <h3>📦 Customer Details</h3>
                 <table style="width: 100%;">
                     <tr><td style="padding: 5px;"><strong>Name:</strong></td><td>{name}</td></tr>
@@ -180,9 +171,7 @@ def send_order_emails(order_ref, name, email, phone, address, city, pincode, ite
                     <tr><td style="padding: 5px;"><strong>Phone:</strong></td><td>{phone}</td></tr>
                     <tr><td style="padding: 5px;"><strong>Address:</strong></td><td>{address}, {city} - {pincode}</td></tr>
                 </table>
-                
                 <hr style="margin: 20px 0;">
-                
                 <h3>🛒 Order Items</h3>
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
@@ -193,11 +182,8 @@ def send_order_emails(order_ref, name, email, phone, address, city, pincode, ite
                             <th style="padding: 12px; text-align: right;">Price</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {items_html}
-                    </tbody>
+                    <tbody>{items_html}</tbody>
                 </table>
-                
                 <div style="background: #fff3cd; padding: 15px; margin-top: 20px; border-radius: 5px;">
                     <p style="margin: 0; color: #856404; font-weight: bold;">⚡ ACTION REQUIRED: Process and ship this order!</p>
                 </div>
@@ -207,7 +193,7 @@ def send_order_emails(order_ref, name, email, phone, address, city, pincode, ite
         mail.send(brand_msg)
         print(f"✅ Brand notification sent for Order #{order_ref}")
         
-        # ===== EMAIL TO CUSTOMER =====
+        # Email to customer
         customer_msg = Message(
             subject=f'✅ Order Confirmed - IRAE #{order_ref}',
             recipients=[email]
@@ -221,12 +207,10 @@ def send_order_emails(order_ref, name, email, phone, address, city, pincode, ite
             <div style="padding: 30px; border: 2px solid #000; border-top: none; border-radius: 0 0 8px 8px;">
                 <h2 style="color: #28a745;">✅ Order Confirmed!</h2>
                 <p>Thank you for shopping with us, <strong>{name}</strong>!</p>
-                
                 <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px;">
                     <p style="margin: 0;"><strong>Order Number:</strong> {order_ref}</p>
                     <p style="margin: 10px 0 0 0;"><strong>Total Paid:</strong> <span style="font-size: 24px; color: #28a745;">₹{total}</span></p>
                 </div>
-                
                 <h3>Order Details:</h3>
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
@@ -237,23 +221,17 @@ def send_order_emails(order_ref, name, email, phone, address, city, pincode, ite
                             <th style="padding: 10px; text-align: right;">Price</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {items_html}
-                    </tbody>
+                    <tbody>{items_html}</tbody>
                 </table>
-                
                 <hr style="margin: 20px 0;">
-                
                 <p><strong>Shipping to:</strong><br>
                 {name}<br>
                 {address}<br>
                 {city} - {pincode}<br>
                 Phone: {phone}</p>
-                
                 <div style="background: #f0f8ff; padding: 15px; margin-top: 20px; border-radius: 5px;">
                     <p style="margin: 0;">📦 We'll notify you when your order ships!</p>
                 </div>
-                
                 <p style="color: #666; margin-top: 20px;">Questions? Contact us at {BRAND_EMAIL}</p>
             </div>
             <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
@@ -325,7 +303,7 @@ app.jinja_env.globals["image_list"] = image_list
 app.jinja_env.globals["first_image"] = first_image
 
 
-# ==================== ROUTES — PAGES ====================
+# ==================== ROUTES ====================
 
 @app.route("/")
 def home():
@@ -441,7 +419,6 @@ def checkout():
         items_summary = [{"name": d["product"]["name"], "size": d["size"], "qty": d["qty"],
                            "price": d["product"]["price"]} for d in details]
         
-        # Save order as PENDING payment
         db.execute(
             """INSERT INTO "order"
                (order_ref, name, email, phone, address, city, pincode, items_json, total, payment_method, payment_status, created_at)
@@ -453,14 +430,10 @@ def checkout():
         )
         db.commit()
         
-        # Generate QR code
         qr_code = generate_upi_qr(grand_total, order_ref)
-        
-        # Store order_ref temporarily
         session["pending_order_ref"] = order_ref
         session.modified = True
         
-        # Show QR payment page
         return render_template("payment.html",
                              qr_code=qr_code,
                              order_ref=order_ref,
@@ -469,42 +442,10 @@ def checkout():
 
     return render_template("checkout.html", details=details, total=total,
                             shipping=shipping, grand_total=grand_total)
-        
-        # Save order as pending payment
-        db.execute(
-            """INSERT INTO "order"
-               (order_ref, name, email, phone, address, city, pincode, items_json, total, payment_method, payment_status, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (order_ref, request.form["name"], request.form["email"], request.form["phone"],
-             request.form["address"], request.form["city"], request.form["pincode"],
-             json.dumps(items_summary), grand_total, "UPI", "pending",
-             datetime.utcnow().isoformat()),
-        )
-        db.commit()
-        
-        # Generate QR code for payment
-        qr_code = generate_upi_qr(grand_total, order_ref)
-        
-        # Store order_ref in session for payment confirmation
-        session["pending_order_ref"] = order_ref
-        session.modified = True
-        
-        return render_template("checkout.html", 
-                             details=details, 
-                             total=total,
-                             shipping=shipping, 
-                             grand_total=grand_total,
-                             qr_code=qr_code,
-                             order_ref=order_ref,
-                             upi_id=UPI_ID)
-
-    return render_template("checkout.html", details=details, total=total,
-                            shipping=shipping, grand_total=grand_total)
 
 
 @app.route("/confirm-payment", methods=["POST"])
 def confirm_payment():
-    """After customer pays via QR, they confirm and we send emails"""
     order_ref = request.form.get("order_ref")
     
     if not order_ref:
@@ -518,12 +459,10 @@ def confirm_payment():
         flash("Order not found.", "error")
         return redirect(url_for("home"))
     
-    # Update payment status
     db.execute('UPDATE "order" SET payment_status = ? WHERE order_ref = ?', 
               ("paid", order_ref))
     db.commit()
     
-    # Send confirmation emails
     email_sent = send_order_emails(
         order_ref=order["order_ref"],
         name=order["name"],
@@ -536,7 +475,6 @@ def confirm_payment():
         total=order["total"]
     )
     
-    # Clear cart
     session["cart"] = {}
     session.pop("pending_order_ref", None)
     session.modified = True
@@ -544,7 +482,7 @@ def confirm_payment():
     if email_sent:
         flash("Payment confirmed! Order confirmation sent to your email.", "success")
     else:
-        flash("Payment confirmed! (Email notification delayed - we'll send it shortly)", "warning")
+        flash("Payment confirmed! (Email notification delayed)", "warning")
     
     return redirect(url_for("order_confirmation", order_ref=order_ref))
 
