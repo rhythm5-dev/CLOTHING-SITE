@@ -441,6 +441,35 @@ def checkout():
         items_summary = [{"name": d["product"]["name"], "size": d["size"], "qty": d["qty"],
                            "price": d["product"]["price"]} for d in details]
         
+        # Save order as PENDING payment
+        db.execute(
+            """INSERT INTO "order"
+               (order_ref, name, email, phone, address, city, pincode, items_json, total, payment_method, payment_status, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (order_ref, request.form["name"], request.form["email"], request.form["phone"],
+             request.form["address"], request.form["city"], request.form["pincode"],
+             json.dumps(items_summary), grand_total, "UPI", "pending",
+             datetime.utcnow().isoformat()),
+        )
+        db.commit()
+        
+        # Generate QR code
+        qr_code = generate_upi_qr(grand_total, order_ref)
+        
+        # Store order_ref temporarily
+        session["pending_order_ref"] = order_ref
+        session.modified = True
+        
+        # Show QR payment page
+        return render_template("payment.html",
+                             qr_code=qr_code,
+                             order_ref=order_ref,
+                             grand_total=grand_total,
+                             upi_id=UPI_ID)
+
+    return render_template("checkout.html", details=details, total=total,
+                            shipping=shipping, grand_total=grand_total)
+        
         # Save order as pending payment
         db.execute(
             """INSERT INTO "order"
